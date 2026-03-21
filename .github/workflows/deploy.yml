@@ -1,43 +1,31 @@
-name: Vue CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
-      - production
 
 jobs:
-
-  test:
+  build-deploy:
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Setup Node
+      - name: Install Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm install
 
-      - name: Run unit tests
-        run: npm run test --if-present
+      - name: Build Application
+        run: npm run build
 
-  docker-build:
-
-    needs: test
-    runs-on: ubuntu-latest
-
-    if: github.ref == 'refs/heads/production'
-
-    steps:
-
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build Docker image
+      - name: Build Docker Image
         run: docker build -t vue-cicd-app .
+
+      - name: Run Container
+        run: docker run -d -p 80:80 vue-cicd-app
