@@ -2,28 +2,25 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Code') {
+
+        stage('Build Docker Image') {
             steps {
-                git 'https://github.com/Prateeksha-Shukla/vue-cicd-app.git'
+                sh 'docker build -t vue-app .'
             }
         }
 
-        stage('Build App') {
+        stage('Tag Image') {
             steps {
-                sh 'npm install'
-                sh 'npm run build'
+                sh 'docker tag vue-app prateekshashukla/vue-app:latest'
             }
         }
 
-        stage('Docker Build') {
+        stage('Push to DockerHub') {
             steps {
-                sh 'docker build -t vue-cicd-app .'
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                sh 'docker run -d -p 80:80 vue-cicd-app'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                    sh 'docker push prateekshashukla/vue-app:latest'
+                }
             }
         }
     }
